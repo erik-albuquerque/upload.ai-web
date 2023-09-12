@@ -1,11 +1,11 @@
-import { HelloWorld } from '@components'
+import { Button } from '@components/ui/button'
 
-const Home = () => {
+const App = () => {
   return (
     <main>
-      <HelloWorld />
+      <Button>button</Button>
     </main>
   )
 }
 
-export default Home
+export default App

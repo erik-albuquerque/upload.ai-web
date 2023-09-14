@@ -1,11 +1,4 @@
-import {
-  Github,
-  Clapperboard,
-  Upload,
-  Wand2,
-  Info,
-  AlertTriangle,
-} from 'lucide-react'
+import { Github, Wand2, Info, AlertTriangle } from 'lucide-react'
 
 import { Button } from '@components/ui/button'
 import { Separator } from '@components/ui/separator'
@@ -20,6 +13,7 @@ import {
 } from '@components/ui/select'
 import { Slider } from '@components/ui/slider'
 import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert'
+import { VideoInputForm } from '@components/forms/video-input-form'
 
 const App = () => {
   return (
@@ -70,42 +64,7 @@ const App = () => {
         </div>
         {/* side bar */}
         <aside className="w-80 space-y-6">
-          {/* video form */}
-          <form className="space-y-6">
-            <Label
-              htmlFor="video"
-              className="border flex rounded-md aspect-video cursor-pointer border-dashed text-sm flex-col gap-2 items-center justify-center text-muted-foreground hover:bg-primary/5 transition-colors"
-            >
-              <Clapperboard className="w-6  h-6" />
-              Selecione um vídeo
-            </Label>
-
-            <input
-              className="sr-only"
-              type="file"
-              id="video"
-              accept="video/mp4"
-            />
-
-            <Separator />
-
-            <div className="space-y-2">
-              <Label htmlFor="transcription_prompt">
-                Prompt de transcrição
-              </Label>
-
-              <Textarea
-                id="transcription_prompt"
-                className="min-h-[80px] leading-relaxed resize-none"
-                placeholder="Inclua palavras-chaves mencionadas no vídeo separadas por vírgula (,)"
-              />
-            </div>
-
-            <Button type="submit" className="w-full">
-              Carregar vídeo
-              <Upload className="w-4 h-4 ml-2" />
-            </Button>
-          </form>
+          <VideoInputForm />
 
           <Separator />
 

@@ -50,7 +50,7 @@ const VideoInputForm = () => {
       console.log(`Convert progress: ${Math.round(progress.progress * 100)}`)
     })
 
-    ffmpeg.exec([
+    await ffmpeg.exec([
       '-i',
       'input.mp4',
       '-map',
@@ -106,23 +106,23 @@ const VideoInputForm = () => {
     setStatus('generating')
 
     // fake call to get a transcription from api
-    await new Promise((resolve) =>
-      resolve(
-        setTimeout(() => {
-          console.log({ videoId, prompt })
-        }, 4000), // 4 seconds
-      ),
-    )
+    // await new Promise((resolve) =>
+    //   resolve(
+    //     setTimeout(() => {
+    //       console.log({ videoId, prompt })
+    //     }, 4000), // 4 seconds
+    //   ),
+    // )
 
-    // await fetch(`http://localhost:3333/videos/${videoId}/transcription`, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({
-    //     prompt,
-    //   }),
-    // })
+    await fetch(`http://localhost:3333/videos/${videoId}/transcription`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt,
+      }),
+    })
 
     setStatus('success')
 
@@ -131,6 +131,8 @@ const VideoInputForm = () => {
 
   const previewURL = useMemo(() => {
     if (!videoFile) return
+
+    console.log(videoFile)
 
     const previewURL = URL.createObjectURL(videoFile)
 

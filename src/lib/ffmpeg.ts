@@ -3,12 +3,12 @@ import { toBlobURL } from '@ffmpeg/util'
 
 let ffmpeg: FFmpeg | null
 
-const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.2/dist/umd'
-
 const getFFmpeg = async () => {
   if (ffmpeg) return ffmpeg
 
   ffmpeg = new FFmpeg()
+
+  const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.2/dist/umd'
 
   if (!ffmpeg.loaded) {
     await ffmpeg.load({

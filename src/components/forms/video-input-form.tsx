@@ -1,6 +1,6 @@
 'use client'
 
-import { ChangeEvent, FormEvent, useMemo, useRef, useState } from 'react'
+import { ChangeEvent, FC, FormEvent, useMemo, useRef, useState } from 'react'
 
 import { fetchFile } from '@ffmpeg/util'
 import { getFFmpeg } from '@lib/ffmpeg'
@@ -21,7 +21,21 @@ const statusMessages = {
   success: 'Sucesso!',
 }
 
-const VideoInputForm = () => {
+type VideoInputFormProps = {
+  onVideoUploaded: (videoId: string) => void
+}
+
+type Video = {
+  id: string
+  name: string
+  path: string
+  transcription: string | null
+  createdAt: Date
+}
+
+const VideoInputForm: FC<VideoInputFormProps> = ({
+  onVideoUploaded,
+}: VideoInputFormProps) => {
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [status, setStatus] = useState<Status>('waiting')
 
@@ -32,7 +46,9 @@ const VideoInputForm = () => {
 
     if (!files) return
 
-    const selectedFile = files.item(0)
+    const selectedFile = files[0]
+
+    console.log('selectedFile', selectedFile)
 
     setVideoFile(selectedFile)
   }
@@ -74,6 +90,41 @@ const VideoInputForm = () => {
     return audioFile
   }
 
+  const uploadAudioFile = async (audioFile: File) => {
+    const formData = new FormData()
+
+    formData.append('file', audioFile)
+
+    const uploadVideoResponse = await fetch(
+      'http://localhost:3333/videos/upload',
+      {
+        method: 'POST',
+        body: formData,
+      },
+    )
+
+    const uploadVideoData: { video: Video } = await uploadVideoResponse.json()
+
+    const video = uploadVideoData.video
+
+    return video
+  }
+
+  const generateTranscription = async (
+    videoId: string,
+    prompt: string | undefined, // FIX: is required, not optional
+  ) => {
+    await fetch(`http://localhost:3333/videos/${videoId}/transcription`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt,
+      }),
+    })
+  }
+
   const handleUploadVideo = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
@@ -85,56 +136,27 @@ const VideoInputForm = () => {
 
     const audioFile = await convertVideoToAudio(videoFile)
 
-    const formData = new FormData()
-
-    formData.append('file', audioFile)
-
     setStatus('uploading')
 
-    const uploadVideoResponse = await fetch(
-      'http://localhost:3333/videos/upload',
-      {
-        method: 'POST',
-        body: formData,
-      },
-    )
+    const video = await uploadAudioFile(audioFile)
 
-    const uploadVideoData = await uploadVideoResponse.json()
-
-    const videoId = uploadVideoData.video.id
+    const videoId = video.id
 
     setStatus('generating')
 
-    // fake call to get a transcription from api
-    // await new Promise((resolve) =>
-    //   resolve(
-    //     setTimeout(() => {
-    //       console.log({ videoId, prompt })
-    //     }, 4000), // 4 seconds
-    //   ),
-    // )
-
-    await fetch(`http://localhost:3333/videos/${videoId}/transcription`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt,
-      }),
-    })
+    await generateTranscription(videoId, prompt)
 
     setStatus('success')
 
-    console.log('upload success')
+    onVideoUploaded(videoId)
   }
 
   const previewURL = useMemo(() => {
     if (!videoFile) return
 
-    console.log(videoFile)
-
     const previewURL = URL.createObjectURL(videoFile)
+
+    setStatus('waiting')
 
     return previewURL
   }, [videoFile])

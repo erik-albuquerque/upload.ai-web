@@ -1,3 +1,5 @@
+'use client'
+
 import { Github, Wand2, Info, AlertTriangle } from 'lucide-react'
 
 import { Button } from '@components/ui/button'
@@ -11,11 +13,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@components/ui/select'
+
 import { Slider } from '@components/ui/slider'
 import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert'
 import { VideoInputForm } from '@components/forms/video-input-form'
+import { PromptSelect } from '@components/prompt-select'
+import { useState } from 'react'
+import { useCompletion } from 'ai/react'
 
 const App = () => {
+  const [videoId, setVideoId] = useState<string | null>(null)
+  const [temperature, setTemperature] = useState(0.5)
+
+  const {
+    input,
+    setInput,
+    completion,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+  } = useCompletion({
+    api: 'http://localhost:3333/ai/completion',
+    body: {
+      videoId,
+      temperature,
+    },
+    headers: {
+      'Content-type': 'application/json',
+    },
+  })
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* header */}
@@ -42,10 +69,14 @@ const App = () => {
             <Textarea
               className="resize-none p-4 leading-relaxed"
               placeholder="Inclua o prompt para a IA..."
+              value={input}
+              onChange={handleInputChange}
             />
+
             <Textarea
               className="resize-none p-4 leading-relaxed focus-visible:ring-transparent"
               placeholder="Resultado gerado pela IA..."
+              value={completion}
               readOnly
             />
           </div>
@@ -64,28 +95,16 @@ const App = () => {
         </div>
         {/* side bar */}
         <aside className="w-80 space-y-6">
-          <VideoInputForm />
+          <VideoInputForm onVideoUploaded={setVideoId} />
 
           <Separator />
 
           {/* prompt form */}
-          <form className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label>Prompt</Label>
 
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um prompt..." />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="title">Título do YouTube</SelectItem>
-
-                  <SelectItem value="description">
-                    Descrição do YouTube
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <PromptSelect onPromptSelected={setInput} />
             </div>
 
             <Separator />
@@ -117,10 +136,18 @@ const App = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label>Temperatura</Label>
-                <span className="text-xs text-muted-foreground">0.5</span>
+                <span className="text-xs text-muted-foreground">
+                  {temperature}
+                </span>
               </div>
 
-              <Slider defaultValue={[0.5]} min={0} max={1} step={0.1} />
+              <Slider
+                min={0}
+                max={1}
+                step={0.1}
+                value={[temperature]}
+                onValueChange={(value) => setTemperature(value[0])}
+              />
 
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
@@ -134,7 +161,7 @@ const App = () => {
 
             <Separator />
 
-            <Button type="submit" className="w-full">
+            <Button disabled={isLoading} type="submit" className="w-full">
               Executar
               <Wand2 className="w-4 h-4 ml-2" />
             </Button>
